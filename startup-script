@@ -1,0 +1,36 @@
+#!/bin/bash
+
+sudo apt-get update 
+sudo apt-get install -y git apache2 php  libapache2-mod-php php-cli php-pgsql php-dev php-common
+
+
+cat << EOF > index.php
+<?php
+
+\$db_handle = pg_connect("host=${db_host} dbname=${db_name} user=${db_user} password=${db_password}");
+
+if (\$db_handle) {
+
+echo 'Connection attempt succeeded.';
+
+} else {
+
+echo 'Connection attempt failed.';
+
+}
+
+pg_close(\$db_handle);
+
+?>
+EOF
+
+sudo cp index.php /var/www/html/index.php
+
+cat << EOF > dir.conf
+<IfModule mod_dir.c>
+        DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm
+</IfModule>
+EOF
+
+sudo cp dir.conf /etc/apache2/mods-enabled/dir.conf
+sudo systemctl restart apache2
